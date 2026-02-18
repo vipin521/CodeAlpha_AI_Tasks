@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Language Translation Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            width: 420px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 80px;
+            padding: 10px;
+            margin-bottom: 10px;
+            resize: none;
+        }
+
+        select, button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 8px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .output {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f1f1f1;
+            border-radius: 5px;
+            min-height: 50px;
+        }
+
+        .copy-btn {
+            margin-top: 8px;
+            background: #28a745;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Language Translator</h2>
+
+    <textarea id="inputText" placeholder="Enter text here..."></textarea>
+
+    <select id="sourceLang">
+        <option value="auto">Auto Detect</option>
+        <option value="en">English</option>
+        <option value="hi">Hindi</option>
+        <option value="fr">French</option>
+        <option value="es">Spanish</option>
+        <option value="de">German</option>
+    </select>
+
+    <select id="targetLang">
+        <option value="en">English</option>
+        <option value="hi">Hindi</option>
+        <option value="fr">French</option>
+        <option value="es">Spanish</option>
+        <option value="de">German</option>
+    </select>
+
+    <button onclick="translateText()">Translate</button>
+
+    <div class="output" id="outputText"></div>
+
+    <button class="copy-btn" onclick="copyText()">Copy Translated Text</button>
+</div>
+
+<script>
+    function detectLanguage(text) {
+        text = text.toLowerCase();
+    
+        if (/^[a-z\s]+$/.test(text)) {
+            // English / French / Spanish (basic heuristic)
+            if (text.includes("bonjour")) return "fr";
+            if (text.includes("hola")) return "es";
+            return "en";
+        }
+        return "en";
+    }
+    
+    async function translateText() {
+        const text = document.getElementById("inputText").value;
+        const sourceSelect = document.getElementById("sourceLang").value;
+        const target = document.getElementById("targetLang").value;
+        const output = document.getElementById("outputText");
+    
+        if (!text.trim()) {
+            output.innerText = "Please enter some text.";
+            return;
+        }
+    
+        output.innerText = "Translating...";
+    
+        let sourceLang = sourceSelect;
+    
+        if (sourceSelect === "auto") {
+            sourceLang = detectLanguage(text);
+        }
+    
+        try {
+            const response = await fetch(
+                `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang}|${target}`
+            );
+    
+            const data = await response.json();
+    
+            if (data.responseData && data.responseData.translatedText) {
+                output.innerText = data.responseData.translatedText;
+            } else {
+                output.innerText = "Translation failed.";
+            }
+    
+        } catch (error) {
+            output.innerText = "Error occurred while translating.";
+        }
+    }
+    
+    function copyText() {
+        const text = document.getElementById("outputText").innerText;
+        if (!text) return;
+        navigator.clipboard.writeText(text);
+        alert("Copied!");
+    }
+    </script>
+    
+    
+
+</body>
+</html>
